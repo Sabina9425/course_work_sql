@@ -5,7 +5,7 @@ import requests
 
 class Parser:
     @abstractmethod
-    def _connect(self):
+    def _connect(self, url: str):
         """Establish connection with the API."""
         pass
 
@@ -14,6 +14,10 @@ class Parser:
         """Fetch vacancies based on a search keyword."""
         pass
 
+    @abstractmethod
+    def get_employers(self):
+        """Fetch companies by predefined list of ids"""
+
 
 class HeadHunterAPI(Parser):
     """
@@ -21,13 +25,14 @@ class HeadHunterAPI(Parser):
     """
 
     def __init__(self, employer_ids):
-        self._url = 'https://api.hh.ru/vacancies'
+        self._vacancies_url = 'https://api.hh.ru/vacancies'
+        self._employers_url = 'https://api.hh.ru/employers'
         self._headers = {'User-Agent': 'HH-User-Agent'}
         self.employer_ids = employer_ids
 
-    def _connect(self):
+    def _connect(self, url: str):
         """Establish connection to the hh.ru API by sending a basic request."""
-        response = requests.get(self._url, headers=self._headers)
+        response = requests.get(url, headers=self._headers)
         if response.status_code == 200:
             return True
         else:
@@ -35,7 +40,7 @@ class HeadHunterAPI(Parser):
 
     def get_vacancies(self, keyword: str):
         """Fetch vacancies from hh.ru based on a search keyword."""
-        self._connect()
+        self._connect(self._vacancies_url)
 
         vacancies = []
         for employer_id in self.employer_ids:
@@ -44,10 +49,27 @@ class HeadHunterAPI(Parser):
                 "per_page": 100,
                 "text": keyword
             }
-            response = requests.get(self._url, params=params)
+            response = requests.get(self._vacancies_url, params=params)
             if response.status_code == 200:
                 vacancies.extend(response.json().get("items", []))
             else:
                 print(f"Failed to get data for employer_id {employer_id}, status code: {response.status_code}")
 
         return vacancies
+
+    def get_employers(self):
+        self._connect(self._employers_url)
+
+        employers = []
+        for employer_id in self.employer_ids:
+            params = {
+                "employer_id": employer_id
+            }
+            response = requests.get(self._employers_url, params=params)
+
+            if response.status_code == 200:
+                employers.append(response.json())
+            else:
+                print(f"Failed to get data for employer_id {employer_id}, status code: {response.status_code}")
+
+        return employers
