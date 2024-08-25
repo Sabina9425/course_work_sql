@@ -1,14 +1,24 @@
 import psycopg2
-
+import configparser
 
 class DBManager:
-    def __init__(self, db_name, user, password, host='localhost', port='5432'):
+    def __init__(self):
+
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+
+        db_name = config['database']['db_name']
+        db_user = config['database']['db_user']
+        db_password = config['database']['db_password']
+        db_host = config['database']['db_host']
+        db_port = config['database']['db_port']
+
         self.connection = psycopg2.connect(
             dbname=db_name,
-            user=user,
-            password=password,
-            host=host,
-            port=port
+            user=db_user,
+            password=db_password,
+            host=db_host,
+            port=db_port
         )
         self.connection.autocommit = True
         self.cursor = self.connection.cursor()
