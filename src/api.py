@@ -10,8 +10,8 @@ class Parser:
         pass
 
     @abstractmethod
-    def get_vacancies(self, keyword: str):
-        """Fetch vacancies based on a search keyword."""
+    def get_vacancies(self):
+        """Fetch vacancies."""
         pass
 
     @abstractmethod
@@ -38,7 +38,7 @@ class HeadHunterAPI(Parser):
         else:
             response.raise_for_status()
 
-    def get_vacancies(self, keyword: str):
+    def get_vacancies(self):
         """Fetch vacancies from hh.ru based on a search keyword."""
         self._connect(self._vacancies_url)
 
@@ -46,8 +46,7 @@ class HeadHunterAPI(Parser):
         for employer_id in self.employer_ids:
             params = {
                 "employer_id": employer_id,
-                "per_page": 100,
-                "text": keyword
+                "per_page": 10
             }
             response = requests.get(self._vacancies_url, params=params)
             if response.status_code == 200:
@@ -62,10 +61,8 @@ class HeadHunterAPI(Parser):
 
         employers = []
         for employer_id in self.employer_ids:
-            params = {
-                "employer_id": employer_id
-            }
-            response = requests.get(self._employers_url, params=params)
+
+            response = requests.get(self._employers_url + "/" + employer_id)
 
             if response.status_code == 200:
                 employers.append(response.json())
