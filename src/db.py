@@ -1,10 +1,12 @@
 import psycopg2
 import configparser
 
+
 class DBManager:
     """
     Class for access to PostgresSQL database with employers and vacancies
     """
+
     def __init__(self):
         """
            Initializes the DBManager with a connection to the PostgreSQL database.
