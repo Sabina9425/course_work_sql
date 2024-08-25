@@ -39,7 +39,7 @@ class HeadHunterAPI(Parser):
             response.raise_for_status()
 
     def get_vacancies(self):
-        """Fetch vacancies from hh.ru based on a search keyword."""
+        """Fetch vacancies from hh.ru"""
         self._connect(self._vacancies_url)
 
         vacancies = []
@@ -57,6 +57,7 @@ class HeadHunterAPI(Parser):
         return vacancies
 
     def get_employers(self):
+        """Fetch employers from hh.ru"""
         self._connect(self._employers_url)
 
         employers = []
