@@ -2,8 +2,15 @@ import psycopg2
 import configparser
 
 class DBManager:
+    """
+    Class for access to PostgresSQL database with employers and vacancies
+    """
     def __init__(self):
+        """
+           Initializes the DBManager with a connection to the PostgreSQL database.
 
+           The connection parameters (database name, user, password, host, and port) are read from a `config.ini` file.
+           """
         config = configparser.ConfigParser()
         config.read('config.ini')
 
@@ -24,7 +31,11 @@ class DBManager:
         self.cursor = self.connection.cursor()
 
     def create_tables(self):
-        """ Function to create employers and vacancies tables """
+        """
+        Creates the `employers` and `vacancies` tables in the PostgreSQL database if they do not already exist.
+
+        The `employers` table stores employer data, and the `vacancies` table stores vacancy data.
+        """
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS employers (
                 employer_id SERIAL PRIMARY KEY,
@@ -46,6 +57,7 @@ class DBManager:
         """)
 
     def save_employer_data(self, employer_data_list):
+        """ Inserts employer data into the `employers` table. """
         for employer_data in employer_data_list:
             self.cursor.execute("""
                 INSERT INTO employers (employer_id, employer_name, open_vacancies, url)
@@ -59,7 +71,7 @@ class DBManager:
             ))
 
     def save_vacancy_data(self, vacancy_data_list):
-        # Function to save vacancies data to vacancies table
+        """ Inserts vacancy data into the `vacancies` table. """
         for vacancy_data in vacancy_data_list:
             self.cursor.execute("""
                 INSERT INTO vacancies (vacancy_id, name, area, salary, employer_id, url)
@@ -75,6 +87,7 @@ class DBManager:
             ))
 
     def get_companies_and_vacancies_count(self):
+        """Retrieves a list of all companies and the number of vacancies for each company. """
         self.cursor.execute("""
             SELECT employer_name, COUNT(vacancies.vacancy_id) as vacancy_count
             FROM employers
@@ -84,6 +97,7 @@ class DBManager:
         return self.cursor.fetchall()
 
     def get_all_vacancies(self):
+        """ Retrieves a list of all vacancies with the company name, vacancy name, salary, and URL. """
         self.cursor.execute("""
             SELECT employers.employer_name, vacancies.name, vacancies.salary, vacancies.url
             FROM vacancies
@@ -92,12 +106,14 @@ class DBManager:
         return self.cursor.fetchall()
 
     def get_avg_salary(self):
+        """Retrieves the average salary of all vacancies in the database."""
         self.cursor.execute("""
             SELECT AVG(salary) FROM vacancies;
         """)
         return self.cursor.fetchone()[0]
 
     def get_vacancies_with_higher_salary(self):
+        """Retrieves a list of all vacancies with salaries higher than the average salary."""
         self.cursor.execute("""
             SELECT employers.employer_name, vacancies.name, vacancies.salary, vacancies.url
             FROM vacancies
@@ -107,6 +123,7 @@ class DBManager:
         return self.cursor.fetchall()
 
     def get_vacancies_with_keyword(self, keyword):
+        """Retrieves a list of all vacancies where the title contains the given keyword."""
         self.cursor.execute("""
             SELECT employers.employer_name, vacancies.name, vacancies.salary, vacancies.url
             FROM vacancies
