@@ -1,7 +1,7 @@
 import psycopg2
 
 
-class DatabaseManager:
+class DBManager:
     def __init__(self, db_name, user, password, host='localhost', port='5432'):
         self.connection = psycopg2.connect(
             dbname=db_name,
@@ -63,6 +63,45 @@ class DatabaseManager:
                 vacancy_data['employer']['id'],
                 vacancy_data['url']
             ))
+
+    def get_companies_and_vacancies_count(self):
+        self.cursor.execute("""
+            SELECT employer_name, open_vacancies as vacancy_count
+            FROM employers;
+        """)
+        return self.cursor.fetchall()
+
+    def get_all_vacancies(self):
+        self.cursor.execute("""
+            SELECT employers.employer_name, vacancies.name, vacancies.salary, vacancies.url
+            FROM vacancies
+            JOIN employers ON vacancies.employer_id = employers.employer_id;
+        """)
+        return self.cursor.fetchall()
+
+    def get_avg_salary(self):
+        self.cursor.execute("""
+            SELECT AVG(salary) FROM vacancies;
+        """)
+        return self.cursor.fetchone()[0]
+
+    def get_vacancies_with_higher_salary(self):
+        self.cursor.execute("""
+            SELECT employers.employer_name, vacancies.name, vacancies.salary, vacancies.url
+            FROM vacancies
+            JOIN employers ON vacancies.employer_id = employers.employer_id
+            WHERE vacancies.salary > (SELECT AVG(salary) FROM vacancies);
+        """)
+        return self.cursor.fetchall()
+
+    def get_vacancies_with_keyword(self, keyword):
+        self.cursor.execute("""
+            SELECT employers.employer_name, vacancies.name, vacancies.salary, vacancies.url
+            FROM vacancies
+            JOIN employers ON vacancies.employer_id = employers.employer_id
+            WHERE vacancies.name ILIKE %s;
+        """, (f'%{keyword}%',))
+        return self.cursor.fetchall()
 
     def close(self):
         self.cursor.close()
