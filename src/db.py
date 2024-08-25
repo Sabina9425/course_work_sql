@@ -76,8 +76,10 @@ class DBManager:
 
     def get_companies_and_vacancies_count(self):
         self.cursor.execute("""
-            SELECT employer_name, open_vacancies as vacancy_count
-            FROM employers;
+            SELECT employer_name, COUNT(vacancies.vacancy_id) as vacancy_count
+            FROM employers
+            LEFT JOIN vacancies ON employers.employer_id = vacancies.employer_id
+            GROUP BY employer_name;
         """)
         return self.cursor.fetchall()
 
